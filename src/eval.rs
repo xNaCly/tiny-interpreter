@@ -1,8 +1,12 @@
 use crate::token::{Token, POSSIBLETOKENVALUE, TOKENS};
 
 // supports operations on integers with the length of 1
-pub fn eval_tokens(t: Vec<Token>){
+pub fn eval_artithmetic(t: Vec<Token>) -> f64 {
     let mut res: f64 = 0.0;
+
+    if let POSSIBLETOKENVALUE::INTEGER(v) = t.get(0).unwrap().tvalue {
+        res = v as f64;
+    }
 
     for i in 1..(t.len()-1) {
         let tok = t.get(i).unwrap();
@@ -22,7 +26,7 @@ pub fn eval_tokens(t: Vec<Token>){
         };
     }
 
-    println!("{}", res);
+    return res;
 }
 
 #[cfg(test)]

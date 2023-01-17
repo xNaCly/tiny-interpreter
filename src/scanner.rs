@@ -48,3 +48,75 @@ pub fn scan(inp: &str) -> Vec<Token> {
     }
     return vec_arr;
 }
+
+#[cfg(test)]
+mod scan_tests {
+    use super::*;
+
+    #[test]
+    fn test_scan_integers_separated_by_plus() {
+        let inp = "1 + 2 + 3";
+        let res = scan(inp);
+        assert_eq!(res[0].ttype, TOKENS::INTEGER);
+        assert_eq!(res[1].ttype, TOKENS::PLUS);
+        assert_eq!(res[2].ttype, TOKENS::INTEGER);
+        assert_eq!(res[3].ttype, TOKENS::PLUS);
+        assert_eq!(res[4].ttype, TOKENS::INTEGER);
+    }
+
+    #[test]
+    fn test_scan_integers_separated_by_minus() {
+        let inp = "1 - 2 - 3";
+        let res = scan(inp);
+        assert_eq!(res[0].ttype, TOKENS::INTEGER);
+        assert_eq!(res[1].ttype, TOKENS::MINUS);
+        assert_eq!(res[2].ttype, TOKENS::INTEGER);
+        assert_eq!(res[3].ttype, TOKENS::MINUS);
+        assert_eq!(res[4].ttype, TOKENS::INTEGER);
+    }
+
+    #[test]
+    fn test_scan_integers_separated_by_asterik(){
+        let inp = "1 * 2 * 3";
+        let res = scan(inp);
+        assert_eq!(res[0].ttype, TOKENS::INTEGER);
+        assert_eq!(res[1].ttype, TOKENS::ASTERISK);
+        assert_eq!(res[2].ttype, TOKENS::INTEGER);
+        assert_eq!(res[3].ttype, TOKENS::ASTERISK);
+        assert_eq!(res[4].ttype, TOKENS::INTEGER);
+    }
+
+    #[test]
+    fn test_scan_integers_separated_by_slashes(){
+        let inp = "1 / 2 / 3";
+        let res = scan(inp);
+        assert_eq!(res[0].ttype, TOKENS::INTEGER);
+        assert_eq!(res[1].ttype, TOKENS::SLASH);
+        assert_eq!(res[2].ttype, TOKENS::INTEGER);
+        assert_eq!(res[3].ttype, TOKENS::SLASH);
+        assert_eq!(res[4].ttype, TOKENS::INTEGER);
+    }
+
+    #[test]
+    fn test_scan_integers_separated_by_modulo(){
+        let inp = "1 % 2 % 3";
+        let res = scan(inp);
+        assert_eq!(res[0].ttype, TOKENS::INTEGER);
+        assert_eq!(res[1].ttype, TOKENS::MODULO);
+        assert_eq!(res[2].ttype, TOKENS::INTEGER);
+        assert_eq!(res[3].ttype, TOKENS::MODULO);
+        assert_eq!(res[4].ttype, TOKENS::INTEGER);
+    }
+
+    #[test]
+    fn test_unknown_token(){
+        let inp = "ü";
+        assert_eq!(scan(inp)[0].ttype, TOKENS::UNKNOWN);
+    }
+
+    #[test]
+    fn test_unknown_token_between_valid_token(){
+        let inp = "1 ü 2 % 3";
+        assert_eq!(scan(inp)[0].ttype, TOKENS::UNKNOWN);
+    }
+}

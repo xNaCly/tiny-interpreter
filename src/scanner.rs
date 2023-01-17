@@ -25,6 +25,9 @@ pub fn scan(inp: &str) -> Vec<Token> {
         } else {
             // TODO: parse integers
             match c {
+                '\n' | '\r' | '\t' | ' ' => {
+                    continue;
+                }
                 '+' => rt.ttype = TOKENS::PLUS,
                 '-' => rt.ttype = TOKENS::MINUS,
                 '/' => rt.ttype = TOKENS::SLASH,
@@ -32,10 +35,11 @@ pub fn scan(inp: &str) -> Vec<Token> {
                 '%' => rt.ttype = TOKENS::MODULO,
                 _ => {
                     if c.is_numeric() {
-                        rt.tvalue = POSSIBLETOKENVALUE::INTEGER(c.to_digit(10).unwrap() as i32);
                         rt.ttype = TOKENS::INTEGER;
+                        rt.tvalue = POSSIBLETOKENVALUE::INTEGER(c.to_digit(10).expect("Couldn't parse integer") as i32)
                     } else {
                         rt.ttype = TOKENS::UNKNOWN;
+                        return vec![rt];
                     }
                 }
             }

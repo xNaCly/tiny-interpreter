@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 use std::{io::{self, Write}, time::Instant};
 use token::{Token, TOKENS};
-use util::Logger;
+use util::{Logger, ASCII_ART};
 
-use crate::eval::eval_tokens;
+// use crate::eval::eval_tokens;
 
 mod util;
 mod scanner;
@@ -13,6 +13,8 @@ mod eval;
 fn main() {
     let root_start = Instant::now();
     let mut logger = Logger::new();
+    println!("{}", ASCII_ART);
+    println!("\ttiny interpreter (v0.1.0) - written by xnacly\n");
     loop {
         print!(">>> ");
 
@@ -45,8 +47,8 @@ fn main() {
                 continue;
             }
             TOKENS::DEBUGCMD => {
-                logger.print_debug = true;
-                logger.debug("Enabled debugging mode...");
+                logger.print_debug = !logger.print_debug;
+                logger.info(&format!("toggling debugging mode to {}", logger.print_debug));
                 continue;
             }
             _ => ()
@@ -58,7 +60,7 @@ fn main() {
             }
         }
 
-        eval_tokens(tokens);
+        // eval_tokens(tokens);
 
         logger.debug(&format!("parsing input took: {}ms, evaluating input took: {}ms", time_to_parse.as_millis(), loop_start.elapsed().as_millis()));
     }

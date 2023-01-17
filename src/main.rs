@@ -2,6 +2,7 @@
 use std::{io::{self, Write}, time::Instant};
 use token::{Token, TOKENS};
 use util::{Logger, ASCII_ART};
+use crate::eval::eval_artithmetic;
 
 // use crate::eval::eval_tokens;
 
@@ -60,7 +61,7 @@ fn main() {
             }
         }
 
-        // eval_tokens(tokens);
+        println!("{}", eval_artithmetic(tokens));
 
         logger.debug(&format!("parsing input took: {}ms, evaluating input took: {}ms", time_to_parse.as_millis(), loop_start.elapsed().as_millis()));
     }

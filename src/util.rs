@@ -89,7 +89,7 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
         }
     }
 
-    return arguments;
+    arguments
 }
 
 #[cfg(test)]

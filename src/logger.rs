@@ -1,8 +1,7 @@
-use std::time::SystemTime;
-
+use std::{sync::Arc, time::SystemTime};
 pub const NONE: u8 = 0;
-pub const PRINT: u8 = 1;
-pub const WARN: u8 = 2;
+pub const WARN: u8 = 1;
+pub const PRINT: u8 = 2;
 pub const DEBUG: u8 = 3;
 
 #[derive(Debug)]
@@ -36,4 +35,9 @@ impl Logger {
             println!("{}", self.format("warn", txt));
         }
     }
+}
+
+/// wrapper for locking and unwrapping the LOG arc
+pub fn log<'a>() -> Arc<Logger> {
+    return crate::LOG.with(|l| l.read().unwrap().clone());
 }

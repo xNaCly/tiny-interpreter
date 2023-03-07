@@ -2,7 +2,7 @@ use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use crate::LOG;
+use crate::logger::log;
 
 /// struct holding cli arguments
 pub struct Arguments {
@@ -15,36 +15,36 @@ const DEFAULT_ARGUMENTS: Arguments = Arguments { loglevel: 1 };
 /// Does nothing if no `.env` file is present. This behavior is useful for switching from dev to prod env.
 pub fn load_dot_env() {
     let file_name = ".env";
-    LOG.debug(&format!(
+    log().debug(&format!(
         "trying to load env variables from '{}'",
         file_name
     ));
     let file = match File::open(file_name) {
         Ok(ok) => ok,
         Err(_) => {
-            LOG.warn("error while loading env: file not found, skipping loading env");
+            log().warn("error while loading env: file not found, skipping loading env");
             return;
         }
     };
 
-    LOG.debug("found the following valid env vars:");
+    log().debug("found the following valid env vars:");
 
     for (_, line) in BufReader::new(file).lines().enumerate() {
         let line = match line {
             Ok(l) => l,
             Err(_) => {
-                LOG.warn("error while loading env: Couldn't read line");
+                log().warn("error while loading env: Couldn't read line");
                 return;
             }
         };
         if line.contains('=') {
             let split_line: Vec<&str> = line.split('=').collect();
             let (key, value) = (split_line[0], split_line[1]);
-            LOG.debug(&format!("k:\"{}\" | v:\"{}\"", key, value));
+            log().debug(&format!("k:\"{}\" | v:\"{}\"", key, value));
             env::set_var(key, value)
         }
     }
-    LOG.debug("set the given env variables")
+    log().debug("set the given env variables")
 }
 
 /// Loads the environment variable for `key` and returns its value.
@@ -66,10 +66,10 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
     }
 
     let mut arguments = Arguments { loglevel: 1 };
-    let flag_arg = args.get(1).expect("Couldn't get second argument").as_str();
+    let flag_arg = args.get(1).unwrap().as_str();
 
-    if flag_arg.starts_with("--L") {
-        let formatted_arg = flag_arg.replace("--L", "");
+    if flag_arg.starts_with("-L") {
+        let formatted_arg = flag_arg.replace("-L", "");
         match formatted_arg.as_str() {
             "none" => arguments.loglevel = crate::logger::NONE,
             "debug" => arguments.loglevel = crate::logger::DEBUG,
@@ -77,12 +77,12 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
                 let a_as_int: u8 = match a.parse::<u8>() {
                     Ok(a) => a,
                     Err(b) => {
-                        LOG.warn(&format!("value '{}' not supported for --L: {}", a, b));
+                        log().warn(&format!("value '{}' not supported for -L: {}", a, b));
                         return arguments;
                     }
                 };
                 if !(crate::logger::NONE <= a_as_int && a_as_int <= crate::logger::DEBUG) {
-                    LOG.warn(&format!("value '{}' not supported for --L", a));
+                    log().warn(&format!("value '{}' not supported for -L", a));
                 }
                 arguments.loglevel = a_as_int
             }
@@ -97,14 +97,14 @@ mod tests {
     use super::*;
     #[test]
     fn test_parse_arguments() {
-        let mut args = vec!["filename".to_string(), "--Lnone".to_string()];
+        let mut args = vec!["filename".to_string(), "-Lnone".to_string()];
         let mut a: Arguments = parse_arguments(&args);
         assert_eq!(a.loglevel, crate::logger::NONE);
-        args = vec!["filename".to_string(), "--Ldebug".to_string()];
+        args = vec!["filename".to_string(), "-Ldebug".to_string()];
         a = parse_arguments(&args);
         assert_eq!(a.loglevel, crate::logger::DEBUG);
-        args = vec!["filename".to_string(), "--L2".to_string()];
+        args = vec!["filename".to_string(), "-L2".to_string()];
         a = parse_arguments(&args);
-        assert_eq!(a.loglevel, crate::logger::WARN);
+        assert_eq!(a.loglevel, crate::logger::PRINT);
     }
 }

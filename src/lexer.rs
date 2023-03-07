@@ -39,14 +39,18 @@ impl Lexer {
                 '%' => token_kind = TokenKind::MOD(),
                 _ => {
                     if c.is_digit(10) {
-                        // TODO: iterate further if next int is also integer
-                        let c_as_int = c
-                            .to_digit(10)
-                            .expect(&format!("error while parsing '{}' at {}", c, i))
-                            as usize;
+                        // TODO: iterate further if next char is also integer
+                        let c_as_int = c.to_digit(10).expect(&format!(
+                            "error while parsing '{}' at pos:'{}' of '{}'",
+                            c, i, self.input
+                        )) as usize;
                         token_kind = TokenKind::INTEGER(c_as_int)
                     } else {
-                        log().warn(&format!("Token '{}' at '{}' unknown!", c, i));
+                        log().warn(&format!(
+                            "Token '{}' at pos:'{}' of '{}' unknown!",
+                            c, i, self.input
+                        ));
+                        // TODO: dont reset lexer output on unknown token
                         return vec![];
                     }
                 }

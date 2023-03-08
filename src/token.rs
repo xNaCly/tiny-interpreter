@@ -1,9 +1,13 @@
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub enum TokenKind {
     EOF,
     UNKNOWN(),
     /// [0-9]+
     INTEGER(usize),
+    /// [0-9]+
+    FLOAT(f64),
+    /// :=
+    ASSIGN,
     /// +
     PLUS,
     /// -
@@ -12,8 +16,30 @@ pub enum TokenKind {
     SLASH,
     /// *
     ASTERISK,
-    /// mod
+    /// **
+    EXPONENT,
+    /// %
     MOD,
+    /// (
+    OPENPAREN,
+    /// )
+    CLOSEPAREN,
+    /// !
+    BANG,
+    /// !=
+    BANGEQUAL,
+    /// .
+    DOT,
+    /// =
+    EQUAL,
+    /// <
+    LESSTHAN,
+    /// >
+    GREATERTHAN,
+    /// <=
+    LESSTHANEQUAL,
+    /// >=
+    GREATERTHANEQUAL,
 }
 
 #[derive(Debug)]

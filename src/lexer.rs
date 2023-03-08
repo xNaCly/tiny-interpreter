@@ -12,14 +12,14 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(input: String) -> Lexer {
         Lexer {
-            input: input.replace(" ", ""),
+            input: input,
             cur_char: '\0',
             pos: 0,
         }
     }
 
     fn at_end(&self) -> bool {
-        self.pos >= self.input.len()
+        self.pos >= self.input.len() || self.cur_char == '\0'
     }
 
     fn advance(&mut self) {
@@ -69,6 +69,28 @@ impl Lexer {
         }
     }
 
+    fn string(&mut self) -> (TokenKind, String) {
+        let mut result = String::new();
+
+        // skip the "
+        self.advance();
+
+        while self.cur_char != '"' && !self.at_end() {
+            result.push(self.cur_char);
+            self.advance();
+        }
+
+        if self.at_end() {
+            log().warn(&format!(
+                "Unterminated String '{}' at pos:'{}' of '{}' unknown!",
+                self.cur_char, self.pos, self.input
+            ));
+            return (TokenKind::UNKNOWN(), result);
+        }
+
+        (TokenKind::STRING(result.clone()), result)
+    }
+
     fn peek(&self) -> char {
         if self.at_end() {
             '\0'
@@ -106,6 +128,11 @@ impl Lexer {
             let cur_char_num = self.cur_char.is_digit(10);
             match self.cur_char {
                 '\0' => token_kind = TokenKind::EOF,
+                '"' => {
+                    let (t_kind, t_literal) = self.string();
+                    token_kind = t_kind;
+                    literal = t_literal;
+                },
                 '+' => token_kind = TokenKind::PLUS,
                 '.' => token_kind = TokenKind::DOT,
                 '-' => token_kind = TokenKind::MINUS,

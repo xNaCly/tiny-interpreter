@@ -40,6 +40,8 @@ pub enum TokenKind {
     LESSTHANEQUAL,
     /// >=
     GREATERTHANEQUAL,
+    /// ".*"
+    STRING(String),
 }
 
 #[derive(Debug)]

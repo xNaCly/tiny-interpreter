@@ -13,16 +13,12 @@ impl Lexer {
     pub fn new(input: String) -> Lexer {
         Lexer {
             input: input.clone(),
-            cur_char: input
-                .chars()
-                .nth(0)
-                .expect("error while retrieving character from input"),
+            cur_char: '\0',
             pos: 0,
         }
     }
 
     fn advance(&mut self) {
-        println!("{}, {}", self.pos, self.cur_char);
         if self.pos + 1 < self.input.len() {
             self.pos += 1;
             self.cur_char = self
@@ -52,6 +48,14 @@ impl Lexer {
 
     pub fn lex(&mut self) -> Vec<Token> {
         let mut vectors = vec![];
+        if self.input.is_empty() {
+            return vectors;
+        }
+        self.cur_char = self
+            .input
+            .chars()
+            .nth(self.pos)
+            .expect("error while retrieving character from input");
         while self.cur_char != '\0' {
             let token_kind: TokenKind;
             let mut literal: String = String::new();

@@ -234,9 +234,9 @@ mod tests {
 
     #[test]
     fn test_lexer_symbols() {
-        let mut lexer = Lexer::new("5 * 17.9 % + - / ** (  ) ! != = . < > <= >=".to_string());
+        let mut lexer = Lexer::new("5192 * 17.9 % + - / ** (  ) ! != = . < > <= >= \"this is a string\"".to_string());
         let tokens = lexer.lex();
-        assert_eq!(tokens[0].kind, TokenKind::INTEGER(5));
+        assert_eq!(tokens[0].kind, TokenKind::INTEGER(5192));
         assert_eq!(tokens[1].kind, TokenKind::ASTERISK);
         assert_eq!(tokens[2].kind, TokenKind::FLOAT(17.9));
         assert_eq!(tokens[3].kind, TokenKind::MOD);
@@ -254,5 +254,30 @@ mod tests {
         assert_eq!(tokens[15].kind, TokenKind::GREATERTHAN);
         assert_eq!(tokens[16].kind, TokenKind::LESSTHANEQUAL);
         assert_eq!(tokens[17].kind, TokenKind::GREATERTHANEQUAL);
+        assert_eq!(tokens[18].kind, TokenKind::STRING("this is a string".to_string()));
+    }
+
+    #[test]
+    fn test_lexer_skip_whitespace(){
+        let mut lexer = Lexer::new(" \n\t".to_string());
+        let tokens = lexer.lex();
+        assert_eq!(tokens.len(), 0);
+    }
+
+    #[test]
+    fn test_lexer_skip_unknown(){
+        let mut lexer = Lexer::new("unknown".to_string());
+        let tokens = lexer.lex();
+        for token in tokens {
+            assert_eq!(token.kind, TokenKind::UNKNOWN());
+        }
+    }
+
+    #[test]
+    fn test_lexer_string(){
+        let mut lexer = Lexer::new("\"this is the first string\" \"second string hmmmmm\"".to_string());
+        let tokens = lexer.lex();
+        assert_eq!(tokens[0].kind, TokenKind::STRING("this is the first string".to_string()));
+        assert_eq!(tokens[1].kind, TokenKind::STRING("second string hmmmmm".to_string()));
     }
 }

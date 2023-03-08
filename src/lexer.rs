@@ -1,8 +1,10 @@
+use std::time::Instant;
 use crate::{
     logger::log,
     token::{Token, TokenKind},
 };
 
+/// Lexer struct that holds the input string, current lexer position and character
 pub struct Lexer {
     input: String,
     cur_char: char,
@@ -10,6 +12,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
+    /// instantiate a new Lexer 
     pub fn new(input: String) -> Lexer {
         Lexer {
             input: input,
@@ -111,6 +114,7 @@ impl Lexer {
     }
 
     pub fn lex(&mut self) -> Vec<Token> {
+        let start_time = Instant::now();
         let mut vectors = vec![];
         if self.input.is_empty() {
             return vectors;
@@ -219,6 +223,7 @@ impl Lexer {
             }
         }
 
+        log().debug(&format!("parsed: {} token{}, took {}µs", vectors.len(), if vectors.len() == 1 { "" } else { "s" }, start_time.elapsed().as_micros()));
         vectors
     }
 }

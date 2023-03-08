@@ -1,8 +1,8 @@
-use std::time::Instant;
 use crate::{
     logger::log,
     token::{Token, TokenKind},
 };
+use std::time::Instant;
 
 /// Lexer struct that holds the input string, current lexer position and character
 pub struct Lexer {
@@ -12,10 +12,10 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    /// instantiate a new Lexer 
+    /// instantiate a new Lexer
     pub fn new(input: String) -> Lexer {
         Lexer {
-            input: input,
+            input,
             cur_char: '\0',
             pos: 0,
         }
@@ -140,7 +140,7 @@ impl Lexer {
                     let (t_kind, t_literal) = self.string();
                     token_kind = t_kind;
                     literal = t_literal;
-                },
+                }
                 '+' => token_kind = TokenKind::PLUS,
                 '.' => token_kind = TokenKind::DOT,
                 '-' => token_kind = TokenKind::MINUS,
@@ -223,7 +223,12 @@ impl Lexer {
             }
         }
 
-        log().debug(&format!("parsed: {} token{}, took {}µs", vectors.len(), if vectors.len() == 1 { "" } else { "s" }, start_time.elapsed().as_micros()));
+        log().debug(&format!(
+            "parsed: {} token{}, took {}µs",
+            vectors.len(),
+            if vectors.len() == 1 { "" } else { "s" },
+            start_time.elapsed().as_micros()
+        ));
         vectors
     }
 }
@@ -234,7 +239,9 @@ mod tests {
 
     #[test]
     fn test_lexer_symbols() {
-        let mut lexer = Lexer::new("5192 * 17.9 % + - / ** (  ) ! != = . < > <= >= \"this is a string\"".to_string());
+        let mut lexer = Lexer::new(
+            "5192 * 17.9 % + - / ** (  ) ! != = . < > <= >= \"this is a string\"".to_string(),
+        );
         let tokens = lexer.lex();
         assert_eq!(tokens[0].kind, TokenKind::INTEGER(5192));
         assert_eq!(tokens[1].kind, TokenKind::ASTERISK);
@@ -254,18 +261,21 @@ mod tests {
         assert_eq!(tokens[15].kind, TokenKind::GREATERTHAN);
         assert_eq!(tokens[16].kind, TokenKind::LESSTHANEQUAL);
         assert_eq!(tokens[17].kind, TokenKind::GREATERTHANEQUAL);
-        assert_eq!(tokens[18].kind, TokenKind::STRING("this is a string".to_string()));
+        assert_eq!(
+            tokens[18].kind,
+            TokenKind::STRING("this is a string".to_string())
+        );
     }
 
     #[test]
-    fn test_lexer_skip_whitespace(){
+    fn test_lexer_skip_whitespace() {
         let mut lexer = Lexer::new(" \n\t".to_string());
         let tokens = lexer.lex();
         assert_eq!(tokens.len(), 0);
     }
 
     #[test]
-    fn test_lexer_skip_unknown(){
+    fn test_lexer_skip_unknown() {
         let mut lexer = Lexer::new("unknown".to_string());
         let tokens = lexer.lex();
         for token in tokens {
@@ -274,10 +284,17 @@ mod tests {
     }
 
     #[test]
-    fn test_lexer_string(){
-        let mut lexer = Lexer::new("\"this is the first string\" \"second string hmmmmm\"".to_string());
+    fn test_lexer_string() {
+        let mut lexer =
+            Lexer::new("\"this is the first string\" \"second string hmmmmm\"".to_string());
         let tokens = lexer.lex();
-        assert_eq!(tokens[0].kind, TokenKind::STRING("this is the first string".to_string()));
-        assert_eq!(tokens[1].kind, TokenKind::STRING("second string hmmmmm".to_string()));
+        assert_eq!(
+            tokens[0].kind,
+            TokenKind::STRING("this is the first string".to_string())
+        );
+        assert_eq!(
+            tokens[1].kind,
+            TokenKind::STRING("second string hmmmmm".to_string())
+        );
     }
 }

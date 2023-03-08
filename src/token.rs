@@ -1,18 +1,19 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum TokenKind {
+    EOF,
     UNKNOWN(),
     /// [0-9]+
     INTEGER(usize),
     /// +
-    PLUS(),
+    PLUS,
     /// -
-    MINUS(),
+    MINUS,
     /// /
-    SLASH(),
+    SLASH,
     /// *
-    ASTERISK(),
+    ASTERISK,
     /// mod
-    MOD(),
+    MOD,
 }
 
 #[derive(Debug)]

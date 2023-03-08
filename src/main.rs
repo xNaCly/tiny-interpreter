@@ -41,7 +41,7 @@ fn main() {
             .read_line(&mut input)
             .expect("Failed to read line from stdin");
 
-        let lexer = lexer::Lexer::new(input.trim().to_string());
+        let mut lexer = lexer::Lexer::new(input.trim().to_string());
         let lex_output = lexer.lex();
         if lex_output.len() > 0 {
             dbg!(lex_output);

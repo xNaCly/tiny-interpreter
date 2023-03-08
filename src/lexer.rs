@@ -127,6 +127,10 @@ impl Lexer {
             let mut literal: String = String::new();
             let cur_char_num = self.cur_char.is_digit(10);
             match self.cur_char {
+                ' ' | '\t' | '\n' => {
+                    self.advance();
+                    continue;
+                }
                 '\0' => token_kind = TokenKind::EOF,
                 '"' => {
                     let (t_kind, t_literal) = self.string();
@@ -197,8 +201,13 @@ impl Lexer {
                 }
             }
 
+            let pos = match self.pos {
+                0 => 0,
+                _ => self.pos - literal.len(),
+            };
+
             let t = Token {
-                pos: self.pos,
+                pos,
                 kind: token_kind,
                 literal,
             };

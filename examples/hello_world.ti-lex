@@ -1,0 +1,3 @@
+Token { pos: 1, kind: PRINT, literal: "print", line: 2 }
+Token { pos: 8, kind: STRING("hello world"), literal: "hello world", line: 2 }
+Token { pos: 19, kind: EOF, literal: "", line: 2 }

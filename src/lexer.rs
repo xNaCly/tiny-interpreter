@@ -9,6 +9,7 @@ pub struct Lexer {
     input: String,
     cur_char: char,
     pos: usize,
+    line_pos: usize,
     line: usize,
     keywords: HashMap<String, TokenKind>,
 }
@@ -17,10 +18,11 @@ impl Lexer {
     /// instantiate a new Lexer
     pub fn new(input: String) -> Lexer {
         Lexer {
-            input,
+            input: input.trim().to_string(),
+            line_pos: 0,
             cur_char: '\0',
             pos: 0,
-            line: 0,
+            line: 1,
             keywords: HashMap::from([
                 ("and".to_string(), TokenKind::AND),
                 ("or".to_string(), TokenKind::OR),
@@ -43,9 +45,20 @@ impl Lexer {
     }
 
     fn error(&self, msg: &str, description: &str, lexeme: &str) {
+        let lines = self.input.split('\n').collect::<Vec<&str>>();
+        let err_line = lines.get(self.line - 1).expect("Unable to get error line");
+        let empty_chars = err_line.trim().len();
+        let pos = if self.line_pos < empty_chars {
+            self.line_pos
+        } else {
+            self.line_pos - empty_chars
+        };
         log().syntax_error(&format!(
             "{} at pos '{}' of '{}' on line {}:\n",
-            msg, self.pos, self.input, self.line
+            msg,
+            pos,
+            err_line.trim(),
+            self.line
         ));
 
         let line = if self.line < 9 {
@@ -55,9 +68,15 @@ impl Lexer {
         };
 
         let up_arrows = if lexeme.len() > 1 {
-            format!(" {}", "^".repeat(lexeme.len()))
+            format!("{}", "^".repeat(lexeme.len() + 1))
         } else {
             "^".to_string()
+        };
+
+        let spaces = if self.line_pos < lexeme.len() {
+            " ".repeat(self.line_pos)
+        } else {
+            " ".repeat((self.line_pos - lexeme.len()) + 5) + &up_arrows
         };
 
         println!(
@@ -65,9 +84,9 @@ impl Lexer {
             logger::COLOR_BLUE,
             line,
             logger::COLOR_RESET,
-            self.input,
+            err_line,
             logger::COLOR_RED,
-            " ".repeat((self.pos - lexeme.len()) + 5) + &up_arrows,
+            spaces,
             msg,
             logger::COLOR_RESET,
             description
@@ -81,6 +100,7 @@ impl Lexer {
     fn advance(&mut self) {
         if self.pos + 1 < self.input.len() {
             self.pos += 1;
+            self.line_pos += 1;
             self.cur_char = self
                 .input
                 .chars()
@@ -195,6 +215,7 @@ impl Lexer {
     pub fn lex(&mut self) -> Vec<Token> {
         let start_time = Instant::now();
         let mut vectors = vec![];
+
         if self.input.is_empty() {
             return vectors;
         }
@@ -216,7 +237,8 @@ impl Lexer {
                 }
                 '\n' => {
                     self.line += 1;
-                    self.pos = 0;
+                    self.line_pos = 0;
+                    self.advance();
                     continue;
                 }
                 '\0' => token_kind = TokenKind::EOF,
@@ -301,10 +323,10 @@ impl Lexer {
                 }
             }
 
-            let pos = match self.pos {
+            let pos = match self.line_pos {
                 0 => 0,
                 x if x < literal.len() => 0,
-                _ => self.pos - literal.len(),
+                _ => self.line_pos - literal.len(),
             };
 
             let t = Token {
@@ -322,7 +344,7 @@ impl Lexer {
         }
 
         vectors.push(Token {
-            pos: self.pos,
+            pos: self.line_pos,
             kind: TokenKind::EOF,
             literal: String::new(),
             line: self.line,

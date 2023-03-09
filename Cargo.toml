@@ -1,5 +1,5 @@
 [package]
-name = "tiny-interpreter"
+name = "teo"
 version = "0.1.0"
 edition = "2021"
 

@@ -2,7 +2,7 @@ use crate::{
     logger::{self, log},
     token::{Token, TokenKind},
 };
-use std::time::Instant;
+use std::{collections::HashMap, ops::Deref, time::Instant};
 
 /// Lexer struct that holds the input string, current lexer position and character
 pub struct Lexer {
@@ -10,6 +10,7 @@ pub struct Lexer {
     cur_char: char,
     pos: usize,
     line: usize,
+    keywords: HashMap<String, TokenKind>,
 }
 
 impl Lexer {
@@ -20,6 +21,24 @@ impl Lexer {
             cur_char: '\0',
             pos: 0,
             line: 0,
+            keywords: HashMap::from([
+                ("and".to_string(), TokenKind::AND),
+                ("or".to_string(), TokenKind::OR),
+                ("fun".to_string(), TokenKind::FUN),
+                ("for".to_string(), TokenKind::FOR),
+                ("if".to_string(), TokenKind::IF),
+                ("else".to_string(), TokenKind::ELSE),
+                ("true".to_string(), TokenKind::TRUE),
+                ("false".to_string(), TokenKind::FALSE),
+                ("nil".to_string(), TokenKind::NIL),
+                ("return".to_string(), TokenKind::RETURN),
+                ("var".to_string(), TokenKind::VAR),
+                ("while".to_string(), TokenKind::WHILE),
+                ("class".to_string(), TokenKind::CLASS),
+                ("super".to_string(), TokenKind::SUPER),
+                ("this".to_string(), TokenKind::THIS),
+                ("print".to_string(), TokenKind::PRINT),
+            ]),
         }
     }
 
@@ -93,7 +112,6 @@ impl Lexer {
             }
         }
         if is_float {
-            dbg!(&result);
             (
                 TokenKind::FLOAT(result.parse::<f64>().expect("failed to parse float")),
                 result,
@@ -127,6 +145,32 @@ impl Lexer {
         }
 
         (TokenKind::STRING(result.clone()), result)
+    }
+
+    fn is_alpha(&self) -> bool {
+        self.cur_char.is_alphabetic() || self.cur_char == '_'
+    }
+
+    fn is_alphanumeric(&self) -> bool {
+        self.is_alpha() || self.cur_char.is_digit(10)
+    }
+
+    fn identifier(&mut self) -> (TokenKind, String) {
+        let mut result = String::new();
+        while self.is_alphanumeric() {
+            result.push(self.cur_char);
+            self.advance();
+        }
+
+        let mut token_kind = TokenKind::IDENTIFIER(result.clone());
+        let res = self.keywords.get(&result);
+
+        token_kind = match res {
+            Some(kind) => kind.clone(),
+            None => token_kind,
+        };
+
+        (token_kind, result)
     }
 
     fn peek(&self) -> char {
@@ -180,23 +224,31 @@ impl Lexer {
                     let (t_kind, t_literal) = self.string();
                     token_kind = t_kind;
                     literal = t_literal;
-                }
-                '+' => token_kind = TokenKind::PLUS,
-                '.' => token_kind = TokenKind::DOT,
-                '-' => token_kind = TokenKind::MINUS,
-                '/' => token_kind = TokenKind::SLASH,
-                '(' => token_kind = TokenKind::OPENPAREN,
-                ')' => token_kind = TokenKind::CLOSEPAREN,
-                '%' => token_kind = TokenKind::MOD,
-                '=' => token_kind = TokenKind::EQUAL,
-                ':' => {
-                    token_kind = if self.peek_equals('=') {
-                        self.advance();
-                        TokenKind::ASSIGN
-                    } else {
-                        TokenKind::UNKNOWN()
+                    if token_kind == TokenKind::UNKNOWN() {
+                        return vec![];
                     }
                 }
+                '+' => token_kind = TokenKind::PLUS,
+                '-' => token_kind = TokenKind::MINUS,
+                ',' => token_kind = TokenKind::COMMA,
+                ';' => token_kind = TokenKind::SEMICOLON,
+                '/' => {
+                    if self.peek_equals('/') {
+                        while self.cur_char != '\n' && !self.at_end() {
+                            self.advance();
+                        }
+                        continue;
+                    } else {
+                        token_kind = TokenKind::SLASH;
+                    }
+                }
+                '.' => token_kind = TokenKind::DOT,
+                '(' => token_kind = TokenKind::OPENPAREN,
+                ')' => token_kind = TokenKind::CLOSEPAREN,
+                '{' => token_kind = TokenKind::RIGHTBRACE,
+                '}' => token_kind = TokenKind::LEFTBRACE,
+                '%' => token_kind = TokenKind::MOD,
+                '=' => token_kind = TokenKind::EQUAL,
                 '<' => {
                     token_kind = if self.peek_equals('=') {
                         self.advance();
@@ -234,6 +286,10 @@ impl Lexer {
                         let (number, new_literal) = self.number();
                         literal = new_literal;
                         token_kind = number;
+                    } else if self.is_alpha() {
+                        let (identifier, new_literal) = self.identifier();
+                        literal = new_literal;
+                        token_kind = identifier;
                     } else {
                         self.error(
                             &format!("unexpected character '{}'", self.cur_char),
@@ -247,6 +303,7 @@ impl Lexer {
 
             let pos = match self.pos {
                 0 => 0,
+                x if x < literal.len() => 0,
                 _ => self.pos - literal.len(),
             };
 
@@ -254,6 +311,7 @@ impl Lexer {
                 pos,
                 kind: token_kind,
                 literal,
+                line: self.line,
             };
 
             vectors.push(t);
@@ -263,12 +321,20 @@ impl Lexer {
             }
         }
 
+        vectors.push(Token {
+            pos: self.pos,
+            kind: TokenKind::EOF,
+            literal: String::new(),
+            line: self.line,
+        });
+
         log().debug(&format!(
             "parsed: {} token{}, took {}µs",
             vectors.len(),
             if vectors.len() == 1 { "" } else { "s" },
             start_time.elapsed().as_micros()
         ));
+
         vectors
     }
 }

@@ -165,6 +165,7 @@ fn help(process_name: &str, short: bool) {
                         \n\t-o <file>       write output to <file>\
                         \n\nThe input file is the last argument, if it is not a file, the program will run in REPL mode.\
                         \nTo write the output to a file use the -o <file> flag.\
+                        \n\nwritten by: xnacly (https://github.com/xnacly)\
                         ";
         println!("{}", help_str)
     }

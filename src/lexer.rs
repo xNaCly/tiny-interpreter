@@ -2,7 +2,7 @@ use crate::{
     logger::{self, log},
     token::{Token, TokenKind},
 };
-use std::{collections::HashMap, ops::Deref, time::Instant};
+use std::{collections::HashMap, time::Instant};
 
 /// Lexer struct that holds the input string, current lexer position and character
 pub struct Lexer {

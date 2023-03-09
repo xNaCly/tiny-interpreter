@@ -90,14 +90,6 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
         in_file_path: None,
     };
 
-    let output_file = args.last().unwrap();
-
-    if output_file == "-o" {
-        log().error("no output file specified");
-    } else {
-        arguments.out_file_path = Some(output_file.to_string());
-    }
-
     for (_, arg) in args.iter().skip(1).enumerate() {
         if arg == "--help" || arg == "-h" {
             help(args.get(0).unwrap(), false);
@@ -127,15 +119,25 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
                         arguments.loglevel = a_as_int
                     }
                 },
+                "-o" => {
+                    if arg.contains('=') {
+                        arguments.out_file_path = Some(
+                            arg.split("=")
+                                .last()
+                                .expect("flag -o given, but no value")
+                                .to_string(),
+                        );
+                    } else {
+                        log().warn("no output file given, switching to repl mode");
+                    }
+                }
                 _ => {
                     if arg.chars().nth(0).expect("no char at index 0") == '-' {
                         log().warn(&format!("unrecognized command-line option '{}'", arg));
                         help(args.get(0).unwrap(), true);
                     } else {
                         arguments.mode = RunMode::File;
-                        if arg != output_file {
-                            arguments.in_file_path = Some(arg.to_string());
-                        }
+                        arguments.in_file_path = Some(arg.to_string());
                     }
                 }
             },
@@ -152,7 +154,7 @@ fn help(process_name: &str, short: bool) {
     if short {
         println!("usage: {} [options] file...", process_name);
     } else {
-        let help_str = "usage: {} [options] file... \
+        let help_str = "usage: {} file [options] \
                         \nOptions:\
                         \n\t-L<loglevel>    set the loglevel (0-3) (default: 1)\
                         \n\t\t 0: none\
@@ -161,19 +163,19 @@ fn help(process_name: &str, short: bool) {
                         \n\t\t 3: debug
                         \n\t-h, --help      display this help and exit\
                         \n\t-o <file>       write output to <file>\
-                        \n\nThe output file is the last argument, if it is not a file, but a flag, the program will panic.\
-                        \nThis behaviour can be overriden by manually specifying an output file using the -o <file> flag.\
+                        \n\nThe input file is the last argument, if it is not a file, the program will run in REPL mode.\
+                        \nTo write the output to a file use the -o <file> flag.\
                         ";
         println!("{}", help_str)
     }
-    exit(127)
+    exit(1);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
-    fn test_parse_arguments() {
+    fn test_parse_arguments_log_level() {
         let mut args = vec!["filename".to_string(), "-Lnone".to_string()];
         let mut a: Arguments = parse_arguments(&args);
         assert_eq!(a.loglevel, crate::logger::NONE);
@@ -183,5 +185,29 @@ mod tests {
         args = vec!["filename".to_string(), "-L2".to_string()];
         a = parse_arguments(&args);
         assert_eq!(a.loglevel, crate::logger::PRINT);
+    }
+
+    #[test]
+    fn test_parse_arguments_files() {
+        let mut args = vec!["filename".to_string(), "file1".to_string()];
+        let mut a: Arguments = parse_arguments(&args);
+        assert_eq!(a.mode, RunMode::File);
+        assert_eq!(a.in_file_path, Some("file1".to_string()));
+        args = vec![
+            "filename".to_string(),
+            "file1".to_string(),
+            "-o=file2".to_string(),
+        ];
+        a = parse_arguments(&args);
+        assert_eq!(a.mode, RunMode::File);
+        assert_eq!(a.in_file_path, Some("file1".to_string()));
+        assert_eq!(a.out_file_path, Some("file2".to_string()));
+    }
+
+    #[test]
+    fn test_parse_arguments_repl() {
+        let args = vec!["filename".to_string()];
+        let a: Arguments = parse_arguments(&args);
+        assert_eq!(a.mode, RunMode::Repl);
     }
 }

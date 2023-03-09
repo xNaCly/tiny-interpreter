@@ -10,13 +10,23 @@ pub struct Logger {
     pub prefix: String,
 }
 
+pub const COLOR_RED: &str = "\x1b[91m";
+pub const COLOR_YELLOW: &str = "\x1b[93m";
+pub const COLOR_BLUE: &str = "\x1b[96m";
+pub const COLOR_RESET: &str = "\x1b[0m";
+
 impl Logger {
     fn format(&self, l_type: &str, l_txt: &str) -> String {
         let color = match l_type {
-            "warn" => "\x1b[93m",
-            "debug" => "\x1b[96m",
-            "fatal error" => "\x1b[91m",
-            _ => "\x1b[0m",
+            "warn" => COLOR_YELLOW,
+            "debug" => COLOR_BLUE,
+            _ => {
+                if l_type.contains("error") {
+                    COLOR_RED
+                } else {
+                    COLOR_RESET
+                }
+            }
         };
         if l_type.len() == 0 {
             format!("{}: {}", self.prefix, l_txt)
@@ -49,6 +59,10 @@ impl Logger {
     pub fn error(&self, txt: &str) {
         println!("{}", self.format("fatal error", txt));
         exit(1);
+    }
+
+    pub fn syntax_error(&self, txt: &str) {
+        println!("{}", self.format("syntax error", txt));
     }
 }
 

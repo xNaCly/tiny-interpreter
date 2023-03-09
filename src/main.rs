@@ -48,10 +48,7 @@ fn main() {
         };
         let output_file = match a.out_file_path {
             Some(p) => p,
-            None => {
-                log().error("no output file specified");
-                return;
-            }
+            None => String::new(),
         };
         file::file(&input_file, &output_file);
     }

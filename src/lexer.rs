@@ -1,5 +1,5 @@
 use crate::{
-    logger::log,
+    logger::{self, log},
     token::{Token, TokenKind},
 };
 use std::time::Instant;
@@ -9,6 +9,7 @@ pub struct Lexer {
     input: String,
     cur_char: char,
     pos: usize,
+    line: usize,
 }
 
 impl Lexer {
@@ -18,7 +19,40 @@ impl Lexer {
             input,
             cur_char: '\0',
             pos: 0,
+            line: 0,
         }
+    }
+
+    fn error(&self, msg: &str, description: &str, lexeme: &str) {
+        log().syntax_error(&format!(
+            "{} at pos '{}' of '{}' on line {}:\n",
+            msg, self.pos, self.input, self.line
+        ));
+
+        let line = if self.line < 9 {
+            format!("0{}", self.line)
+        } else {
+            format!("{}", self.line)
+        };
+
+        let up_arrows = if lexeme.len() > 1 {
+            format!(" {}", "^".repeat(lexeme.len()))
+        } else {
+            "^".to_string()
+        };
+
+        println!(
+            "{}{} |{} {}\n{}{} {}{}\n\n{}\n",
+            logger::COLOR_BLUE,
+            line,
+            logger::COLOR_RESET,
+            self.input,
+            logger::COLOR_RED,
+            " ".repeat((self.pos - lexeme.len()) + 5) + &up_arrows,
+            msg,
+            logger::COLOR_RESET,
+            description
+        );
     }
 
     fn at_end(&self) -> bool {
@@ -84,10 +118,11 @@ impl Lexer {
         }
 
         if self.at_end() {
-            log().warn(&format!(
-                "Unterminated String '{}' at pos:'{}' of '{}' unknown!",
-                self.cur_char, self.pos, self.input
-            ));
+            self.error(
+                "unterminated string",
+                "string literals must be terminated with '\"'",
+                &result,
+            );
             return (TokenKind::UNKNOWN(), result);
         }
 
@@ -131,8 +166,13 @@ impl Lexer {
             let mut literal: String = String::new();
             let cur_char_num = self.cur_char.is_digit(10);
             match self.cur_char {
-                ' ' | '\t' | '\n' => {
+                ' ' | '\t' | '\r' => {
                     self.advance();
+                    continue;
+                }
+                '\n' => {
+                    self.line += 1;
+                    self.pos = 0;
                     continue;
                 }
                 '\0' => token_kind = TokenKind::EOF,
@@ -195,12 +235,12 @@ impl Lexer {
                         literal = new_literal;
                         token_kind = number;
                     } else {
-                        log().warn(&format!(
-                            "Token '{}' at pos:'{}' of '{}' unknown!",
-                            self.cur_char, self.pos, self.input
-                        ));
-                        token_kind = TokenKind::UNKNOWN();
-                        literal = self.cur_char.to_string();
+                        self.error(
+                            &format!("unexpected character '{}'", self.cur_char),
+                            "expected a valid character, such as a number, operator, or parenthesis",
+                            &literal,
+                        );
+                        return vec![];
                     }
                 }
             }

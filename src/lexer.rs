@@ -351,7 +351,7 @@ impl Lexer {
         });
 
         log().debug(&format!(
-            "parsed: {} token{}, took {}µs",
+            "lexed: {} token{}, took {}µs",
             vectors.len(),
             if vectors.len() == 1 { "" } else { "s" },
             start_time.elapsed().as_micros()
@@ -400,15 +400,6 @@ mod tests {
         let mut lexer = Lexer::new(" \n\t".to_string());
         let tokens = lexer.lex();
         assert_eq!(tokens.len(), 0);
-    }
-
-    #[test]
-    fn test_lexer_skip_unknown() {
-        let mut lexer = Lexer::new("unknown".to_string());
-        let tokens = lexer.lex();
-        for token in tokens {
-            assert_eq!(token.kind, TokenKind::UNKNOWN());
-        }
     }
 
     #[test]

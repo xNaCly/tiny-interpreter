@@ -1,7 +1,3 @@
-use core::panic;
-use std::env;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::process::exit;
 
 use crate::logger::log;
@@ -41,7 +37,7 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
         in_file_path: None,
     };
 
-    for (_, arg) in args.iter().skip(1).enumerate() {
+    for (i, arg) in args.iter().skip(1).enumerate() {
         if arg == "--help" || arg == "-h" {
             help(args.get(0).unwrap(), false);
         }
@@ -71,24 +67,22 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
                     }
                 },
                 "-o" => {
-                    if arg.contains('=') {
-                        arguments.out_file_path = Some(
-                            arg.split("=")
-                                .last()
-                                .expect("flag -o given, but no value")
-                                .to_string(),
-                        );
+                    if args.len() > i+1 {
+                        let out_file = args.get(i+2).expect("no output file specified");
+                        arguments.out_file_path = Some(out_file.to_owned());
                     } else {
-                        log().warn("no output file given, switching to repl mode");
+                        log().error("-o flag specified, but no output file");
                     }
                 }
                 _ => {
-                    if arg.chars().nth(0).expect("no char at index 0") == '-' {
+                    if arg.chars().next().expect("no char at index 0") == '-' {
                         log().warn(&format!("unrecognized command-line option '{}'", arg));
                         help(args.get(0).unwrap(), true);
                     } else {
-                        arguments.mode = RunMode::File;
-                        arguments.in_file_path = Some(arg.to_string());
+                        if arguments.in_file_path.is_none() {
+                            arguments.mode = RunMode::File;
+                            arguments.in_file_path = Some(arg.to_string());
+                        }
                     }
                 }
             },
@@ -148,7 +142,8 @@ mod tests {
         args = vec![
             "filename".to_string(),
             "file1".to_string(),
-            "-o=file2".to_string(),
+            "-o".to_string(),
+            "file2".to_string(),
         ];
         a = parse_arguments(&args);
         assert_eq!(a.mode, RunMode::File);

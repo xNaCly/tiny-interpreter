@@ -34,8 +34,6 @@ fn main() {
     log().debug(&format!("process arguments: {:?}", args));
     log().debug(&format!("parsed arguments: {:?}", a));
 
-    util::load_dot_env();
-
     if a.mode == util::RunMode::Repl {
         repl::repl();
     } else {

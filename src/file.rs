@@ -28,6 +28,7 @@ pub fn file(file_in: &str, file_out: &str) {
     }
 
     if file_out.is_empty() {
+        log().debug("no out file specified, printing to stdout");
         println!("{:?}", output);
     } else {
         let mut file =

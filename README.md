@@ -52,7 +52,7 @@ This readme will probably not be as up to date as the above command. Run the exe
 By default the interpreter writes its output to stdout, to alter this behaviour specify a file for `teo` to write to by passing the `-o` flag to it:
 
 ```
-teo main.teo -o=main.out
+teo main.teo -o main.out
 ```
 
 This flag only affects the execution if an input file is passed to `teo` as well.

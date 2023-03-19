@@ -68,7 +68,7 @@ impl Lexer {
         };
 
         let up_arrows = if lexeme.len() > 1 {
-            format!("{}", "^".repeat(lexeme.len() + 1))
+            "^".repeat(lexeme.len() + 1)
         } else {
             "^".to_string()
         };
@@ -114,11 +114,11 @@ impl Lexer {
     fn number(&mut self) -> (TokenKind, String) {
         let mut is_float = false;
         let mut result = String::new();
-        while self.cur_char.is_digit(10) {
+        while self.cur_char.is_ascii_digit() {
             result.push(self.cur_char);
             self.advance();
         }
-        if self.cur_char == '.' && self.peek().is_digit(10) {
+        if self.cur_char == '.' && self.peek().is_ascii_digit() {
             is_float = true;
 
             result.push(self.cur_char);
@@ -126,7 +126,7 @@ impl Lexer {
             // skip the '.'
             self.advance();
 
-            while self.cur_char.is_digit(10) {
+            while self.cur_char.is_ascii_digit() {
                 result.push(self.cur_char);
                 self.advance();
             }
@@ -172,7 +172,7 @@ impl Lexer {
     }
 
     fn is_alphanumeric(&self) -> bool {
-        self.is_alpha() || self.cur_char.is_digit(10)
+        self.is_alpha() || self.cur_char.is_ascii_digit()
     }
 
     fn identifier(&mut self) -> (TokenKind, String) {
@@ -229,7 +229,7 @@ impl Lexer {
         while self.cur_char != '\0' {
             let token_kind: TokenKind;
             let mut literal: String = String::new();
-            let cur_char_num = self.cur_char.is_digit(10);
+            let cur_char_num = self.cur_char.is_ascii_digit();
             match self.cur_char {
                 ' ' | '\t' | '\r' => {
                     self.advance();

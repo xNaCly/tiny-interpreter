@@ -12,8 +12,13 @@ pub fn file(file_in: &str, file_out: &str) {
 
     log().debug(&format!("opening file '{}'", file_in));
 
-    let file_content =
-        std::fs::read_to_string(file_in).expect(&format!("Unable to read file '{}'", file_in));
+    let file_content = match std::fs::read_to_string(file_in) {
+        Err(e) => {
+            log().error(&format!("Unable to read file '{}' due to: {}", file_in, e));
+            "".to_string()
+        }
+        Ok(v) => v,
+    };
 
     log().debug(&format!("done reading file '{}'", file_in));
 
@@ -31,8 +36,13 @@ pub fn file(file_in: &str, file_out: &str) {
         log().debug("no out file specified, printing to stdout");
         println!("{:?}", output);
     } else {
-        let mut file =
-            File::create(file_out).expect(&format!("Unable to create file '{}'", file_out));
+        let mut file = match File::create(file_out) {
+            Err(e) => {
+                log().error(&format!("Unable to read file '{}' due to: {}", file_out, e));
+                return
+            }
+            Ok(v) => v,
+        };
         for token in output {
             writeln!(&mut file, "{:?}", token).expect("Unable to write to file");
         }

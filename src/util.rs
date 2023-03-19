@@ -4,16 +4,22 @@ use crate::logger::log;
 
 #[derive(Debug, PartialEq)]
 pub enum RunMode {
+    /// read instruction, interpret, print output
     Repl,
+    /// read file, interpret, print output or write to file
     File,
 }
 
 /// struct holding cli arguments
 #[derive(Debug)]
 pub struct Arguments {
+    /// loglevel, see logger.rs
     pub loglevel: u8,
+    /// mode, either repl or file mode
     pub mode: RunMode,
+    /// input file
     pub in_file_path: Option<String>,
+    /// output file
     pub out_file_path: Option<String>,
 }
 
@@ -57,7 +63,7 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
                                 return arguments;
                             }
                         };
-                        if !(crate::logger::NONE <= a_as_int && a_as_int <= crate::logger::DEBUG) {
+                        if !(crate::logger::NONE..=crate::logger::DEBUG).contains(&a_as_int) {
                             log().warn(&format!(
                                 "value '{}' not supported for -L, reseting to loglevel 1",
                                 a
@@ -67,8 +73,8 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
                     }
                 },
                 "-o" => {
-                    if args.len() > i+1 {
-                        let out_file = args.get(i+2).expect("no output file specified");
+                    if args.len() > i + 1 {
+                        let out_file = args.get(i + 2).expect("no output file specified");
                         arguments.out_file_path = Some(out_file.to_owned());
                     } else {
                         log().error("-o flag specified, but no output file");
@@ -78,11 +84,9 @@ pub fn parse_arguments(args: &Vec<String>) -> Arguments {
                     if arg.chars().next().expect("no char at index 0") == '-' {
                         log().warn(&format!("unrecognized command-line option '{}'", arg));
                         help(args.get(0).unwrap(), true);
-                    } else {
-                        if arguments.in_file_path.is_none() {
-                            arguments.mode = RunMode::File;
-                            arguments.in_file_path = Some(arg.to_string());
-                        }
+                    } else if arguments.in_file_path.is_none() {
+                        arguments.mode = RunMode::File;
+                        arguments.in_file_path = Some(arg.to_string());
                     }
                 }
             },

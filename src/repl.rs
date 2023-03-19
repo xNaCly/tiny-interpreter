@@ -18,14 +18,13 @@ pub fn repl() {
             .read_line(&mut input)
             .expect("Failed to read line from stdin");
 
-        match input.trim() {
-            ".exit" => break,
-            _ => (),
+        if input.trim() == ".exit" {
+            break;
         }
 
         let mut lexer = Lexer::new(input.trim().to_string());
         let lex_output = lexer.lex();
-        if lex_output.len() > 0 {
+        if !lex_output.is_empty() {
             dbg!(lex_output);
         }
     }

@@ -28,7 +28,7 @@ impl Logger {
                 }
             }
         };
-        if l_type.len() == 0 {
+        if l_type.is_empty() {
             format!("{}: {}", self.prefix, l_txt)
         } else {
             format!(
@@ -67,6 +67,6 @@ impl Logger {
 }
 
 /// wrapper for locking and unwrapping the LOG arc
-pub fn log<'a>() -> Arc<Logger> {
-    return crate::LOG.with(|l| l.read().unwrap().clone());
+pub fn log() -> Arc<Logger> {
+    crate::LOG.with(|l| l.read().unwrap().clone())
 }

@@ -2,16 +2,17 @@
 
 **INFO**: currently only lexing is implemented, you shouldn't use this language 💀
 
-Learning and applying concepts from the building compilers class in rust (building an interpreter for my own programming language, teolang).
+Learning and applying concepts from the building compilers class in go (building an interpreter for my own programming language, teolang).
+The interpreter does not use any external dependencies.
 
 ## Setup and running
 
-> requires git, cargo and rustc
+> requires git and go
 
 ```bash
 git clone https://github.com/xNaCly/tiny-interpreter.git
 # this will start the repl:
-cargo run
+go run .
 ```
 
 ## Interpreter
@@ -22,7 +23,7 @@ The interpreter supports a sophisticated scripting language called the `teolang`
 
 #### REPL
 
-To run the interpreter in `read eval print line` mode, simply invoke it by calling the built binary or following the steps above and running it using `cargo run`.
+To run the interpreter in `read eval print line` mode, simply invoke it by calling the built binary or following the steps above and running it using `go run .`.
 
 #### File mode
 
@@ -41,8 +42,8 @@ To view the help invoke the interpreter with either the `-h` or the `--help` fla
 ```bash
 teo -h
 teo --help
-cargo run -- -h
-cargo run -- -help
+go run . -- -h
+go run . -- -help
 ```
 
 This readme will probably not be as up to date as the above command. Run the executable and take a look at the help output for more info.

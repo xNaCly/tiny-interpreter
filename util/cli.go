@@ -12,7 +12,12 @@ type TeoArguments struct {
 // defines and parses cli arguments
 func Arguments() TeoArguments {
 	args := os.Args
-	return TeoArguments{
-		InFile: args[1],
+	if len(args) < 2 {
+		LInfo("No input file specified. switching to repl mode")
+	} else {
+		return TeoArguments{
+			InFile: args[1],
+		}
 	}
+	return TeoArguments{}
 }

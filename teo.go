@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/xnacly/tiny-interpreter/lexer"
 	"github.com/xnacly/tiny-interpreter/util"
 )
 
@@ -11,8 +12,6 @@ import (
 func main() {
 	args := util.Arguments()
 	util.L(args)
-	util.L("test")
-	util.LInfo("test")
-	util.LWarn("test")
-	util.LError("test")
+	lexer := lexer.NewLexer("var f = \"this is a string\"")
+	lexer.Lex()
 }

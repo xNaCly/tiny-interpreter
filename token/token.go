@@ -6,6 +6,7 @@ type Token struct {
 	Type    TokenType
 	Pos     int
 	Literal string
+	Value   any
 	Line    int
 }
 

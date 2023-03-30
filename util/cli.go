@@ -5,19 +5,17 @@ import (
 	"os"
 )
 
-type TeoArguments struct {
+type SophiaArguments struct {
 	InFile string
 }
 
 // defines and parses cli arguments
-func Arguments() TeoArguments {
+func Arguments() SophiaArguments {
 	args := os.Args
-	if len(args) < 2 {
-		LInfo("No input file specified. switching to repl mode")
-	} else {
-		return TeoArguments{
+	if len(args) >= 2 {
+		return SophiaArguments{
 			InFile: args[1],
 		}
 	}
-	return TeoArguments{}
+	return SophiaArguments{}
 }

@@ -3,7 +3,6 @@ package lexer
 import (
 	"testing"
 
-	"github.com/xnacly/tiny-interpreter/logger"
 	"github.com/xnacly/tiny-interpreter/token"
 )
 
@@ -36,7 +35,6 @@ func TestSingleCharTokens(t *testing.T) {
 	}
 	lexer := NewLexer("+-,;/*.")
 	tokens := lexer.Lex()
-	logger.LTokens(tokens)
 	for i, token := range tokens {
 		if token.Type != tokenTypes[i] {
 			t.Errorf("expected tokenType '%d', got '%d'", tokenTypes[i], token.Type)
@@ -63,7 +61,6 @@ func TestMultiCharTokens(t *testing.T) {
 	}
 	lexer := NewLexer("% () {} ! != = < > <= >= **")
 	tokens := lexer.Lex()
-	logger.LTokens(tokens)
 	for i, token := range tokens {
 		if token.Type != tokenTypes[i] {
 			t.Errorf("expected tokenType '%d', got '%d'", tokenTypes[i], token.Type)
@@ -80,7 +77,6 @@ func TestLiterals(t *testing.T) {
 	}
 	lexer := NewLexer("f 1209.012 \"test\"")
 	tokens := lexer.Lex()
-	logger.LTokens(tokens)
 	for i, token := range tokens {
 		if token.Type != tokenTypes[i] {
 			t.Errorf("expected tokenType '%d', got '%d'", tokenTypes[i], token.Type)
@@ -110,7 +106,6 @@ func TestKeywords(t *testing.T) {
 	}
 	lexer := NewLexer("and or fun for if else true false nil return var while class super this print")
 	tokens := lexer.Lex()
-	logger.LTokens(tokens)
 	for i, token := range tokens {
 		if token.Type != tokenTypes[i] {
 			t.Errorf("expected tokenType '%d', got '%d'", tokenTypes[i], token.Type)

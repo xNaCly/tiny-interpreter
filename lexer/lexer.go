@@ -262,7 +262,6 @@ func (l *Lexer) Lex() []token.Token {
 				t, lit := l.identifier()
 				literal = lit
 				kind = t
-				logger.L(literal, kind, l.currentChar)
 			} else {
 				l.error("Unexpected character '"+string(l.currentChar)+"'", "expected a valid character, such as a number, operator, or parenthesis", string(l.currentChar))
 				return []token.Token{}

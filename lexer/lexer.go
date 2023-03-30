@@ -121,7 +121,7 @@ func (l *Lexer) identifier() (token.TokenType, string) {
 	if val, ok := token.KEYWORDS[res]; ok {
 		return val, res
 	} else {
-		return val, res
+		return token.IDENTIFIER, res
 	}
 }
 
@@ -251,17 +251,18 @@ func (l *Lexer) Lex() []token.Token {
 			}
 		default:
 			if unicode.IsDigit(l.currentChar) {
-				l, v, err := l.number()
+				lit, v, err := l.number()
 				if err != nil {
 					logger.LError("couldn't parse integer")
 				}
-				literal = l
+				literal = lit
 				value = v
 				kind = token.INTEGER
 			} else if l.isAlpha() {
-				t, l := l.identifier()
-				literal = l
+				t, lit := l.identifier()
+				literal = lit
 				kind = t
+				logger.L(literal, kind, l.currentChar)
 			} else {
 				l.error("Unexpected character '"+string(l.currentChar)+"'", "expected a valid character, such as a number, operator, or parenthesis", string(l.currentChar))
 				return []token.Token{}

@@ -2,7 +2,7 @@
 
 **INFO**: currently only lexing is implemented, you shouldn't use this language 💀
 
-Learning and applying concepts from the building compilers class in go (building an interpreter for my own programming language, teolang).
+Learning and applying concepts from the building compilers class in go (building an interpreter (soph) for my own programming language, teolang).
 The interpreter does not use any external dependencies.
 
 ## Setup and running
@@ -13,6 +13,14 @@ The interpreter does not use any external dependencies.
 git clone https://github.com/xNaCly/tiny-interpreter.git
 # this will start the repl:
 go run .
+```
+
+### Building
+
+```bash
+git clone https://github.com/xNaCly/tiny-interpreter.git
+# this will start the repl:
+go build -o soph
 ```
 
 ## Interpreter
@@ -30,7 +38,7 @@ To run the interpreter in `read eval print line` mode, simply invoke it by calli
 To feed the interpreter a file to execute, simply call the interpreter with the file to run as an argument:
 
 ```bash
-teo file.teo
+soph file.teo
 ```
 
 ### Command line arguments
@@ -40,8 +48,8 @@ teo file.teo
 To view the help invoke the interpreter with either the `-h` or the `--help` flag:
 
 ```bash
-teo -h
-teo --help
+soph -h
+soph --help
 go run . -h
 go run . -help
 ```
@@ -53,5 +61,5 @@ This readme will probably not be as up to date as the above command. Run the exe
 Take a look at the `*.teo` files in the [/examples](/examples) directory. To run an example, run the following command:
 
 ```
-teo hello_world.teo
+sophia hello_world.teo
 ```

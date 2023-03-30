@@ -61,8 +61,54 @@ func TestMultiCharTokens(t *testing.T) {
 		token.EXPONENT,
 		token.EOF,
 	}
-	// TODO: this results in != and two = = :(
 	lexer := NewLexer("% () {} ! != = < > <= >= **")
+	tokens := lexer.Lex()
+	logger.LTokens(tokens)
+	for i, token := range tokens {
+		if token.Type != tokenTypes[i] {
+			t.Errorf("expected tokenType '%d', got '%d'", tokenTypes[i], token.Type)
+		}
+	}
+}
+
+func TestLiterals(t *testing.T) {
+	tokenTypes := []token.TokenType{
+		token.IDENTIFIER,
+		token.INTEGER,
+		token.STRING,
+		token.EOF,
+	}
+	lexer := NewLexer("f 1209.012 \"test\"")
+	tokens := lexer.Lex()
+	logger.LTokens(tokens)
+	for i, token := range tokens {
+		if token.Type != tokenTypes[i] {
+			t.Errorf("expected tokenType '%d', got '%d'", tokenTypes[i], token.Type)
+		}
+	}
+}
+
+func TestKeywords(t *testing.T) {
+	tokenTypes := []token.TokenType{
+		token.AND,
+		token.OR,
+		token.FUN,
+		token.FOR,
+		token.IF,
+		token.ELSE,
+		token.TRUE,
+		token.FALSE,
+		token.NIL,
+		token.RETURN,
+		token.VAR,
+		token.WHILE,
+		token.CLASS,
+		token.SUPER,
+		token.THIS,
+		token.PRINT,
+		token.EOF,
+	}
+	lexer := NewLexer("and or fun for if else true false nil return var while class super this print")
 	tokens := lexer.Lex()
 	logger.LTokens(tokens)
 	for i, token := range tokens {

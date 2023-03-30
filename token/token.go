@@ -41,7 +41,6 @@ const (
 	// literals
 	IDENTIFIER
 	INTEGER
-	FLOAT
 	STRING
 
 	// keywords
@@ -107,7 +106,6 @@ var TOKEN_LOOKUP = map[TokenType]string{
 	EXPONENT:         "EXPONENT",
 	IDENTIFIER:       "IDENTIFIER",
 	INTEGER:          "INTEGER",
-	FLOAT:            "FLOAT",
 	STRING:           "STRING",
 	AND:              "AND",
 	OR:               "OR",

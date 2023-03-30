@@ -3,31 +3,14 @@ package lexer
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 	"unicode"
 
+	"github.com/xnacly/tiny-interpreter/logger"
 	"github.com/xnacly/tiny-interpreter/token"
-	"github.com/xnacly/tiny-interpreter/util"
 )
-
-var KEYWORDS = map[string]token.TokenType{
-	"and":    token.AND,
-	"or":     token.OR,
-	"fun":    token.FUN,
-	"for":    token.FOR,
-	"if":     token.IF,
-	"else":   token.ELSE,
-	"true":   token.TRUE,
-	"false":  token.FALSE,
-	"nil":    token.NIL,
-	"return": token.RETURN,
-	"var":    token.VAR,
-	"while":  token.WHILE,
-	"class":  token.CLASS,
-	"super":  token.SUPER,
-	"this":   token.THIS,
-	"print":  token.PRINT,
-}
 
 type Lexer struct {
 	input       []rune // the input to lex
@@ -40,7 +23,11 @@ type Lexer struct {
 // creates a new instance of Lexer and returns it
 func NewLexer(input string) *Lexer {
 	l := &Lexer{input: []rune(input), line: 1, line_pos: 0, position: 0}
-	l.currentChar = l.input[l.position]
+	if len(input) > 0 {
+		l.currentChar = l.input[l.position]
+	} else {
+		l.currentChar = 0
+	}
 	return l
 }
 
@@ -62,7 +49,7 @@ func (l *Lexer) atEnd() bool {
 
 // returns the next character without advancing the lexer
 func (l *Lexer) peek() rune {
-	if l.atEnd() {
+	if l.atEnd() || l.position+1 >= len(l.input) {
 		return 0
 	} else {
 		return l.input[l.position+1]
@@ -87,36 +74,92 @@ func (l *Lexer) isAlphaNumeric() bool {
 // advances the lexer until the current character is a closing quote, returns the string, throws an error if the end of the input is reached before closing the string
 func (l *Lexer) string() (string, error) {
 	res := ""
+
+	l.advance()
+
 	for l.currentChar != '"' && !l.atEnd() {
 		res += string(l.currentChar)
 		l.advance()
 	}
 
 	if l.atEnd() {
-		return "", errors.New("unterminated string")
+		return res, errors.New("unterminated string")
 	} else {
 		return res, nil
 	}
 }
 
 // advances the lexer until the current character is not a digit, returns the digit
-func (l *Lexer) number() (string, int, error) {
-	return "", 0, errors.New("not implemented")
+func (l *Lexer) number() (string, float64, error) {
+	res := ""
+	for unicode.IsDigit(l.currentChar) {
+		res += string(l.currentChar)
+		l.advance()
+	}
+	if l.currentChar == '.' && unicode.IsDigit(l.peek()) {
+		res += string(l.currentChar)
+
+		l.advance()
+
+		for unicode.IsDigit(l.currentChar) {
+			res += string(l.currentChar)
+			l.advance()
+		}
+	}
+	integer, err := strconv.ParseFloat(res, 64)
+	return res, integer, err
 }
 
 // advances the lexer until the current character is a whitespace, returns the identifier
-func (l *Lexer) identifier() (token.TokenType, string, error) {
+func (l *Lexer) identifier() (token.TokenType, string) {
 	res := ""
 	for l.isAlphaNumeric() {
 		res += string(l.currentChar)
 		l.advance()
 	}
 
-	if val, ok := KEYWORDS[res]; ok {
-		return val, res, nil
+	if val, ok := token.KEYWORDS[res]; ok {
+		return val, res
 	} else {
-		return token.UNKNOWN, res, errors.New("couldn't parse identifier")
+		return val, res
 	}
+}
+
+func (l *Lexer) error(message string, description string, lexeme string) {
+	errorLine := strings.Split(string(l.input), "\n")[l.line-1]
+
+	linePosFormatted := ""
+	if l.line < 9 {
+		linePosFormatted = "0" + fmt.Sprint(l.line)
+	} else {
+		linePosFormatted = fmt.Sprint(l.line)
+	}
+
+	fmt.Printf("%serror%s: %s at pos %d of '%s' on line %d\n\n", logger.ANSI_RED, logger.ANSI_RESET, message, l.line_pos, errorLine, l.line)
+
+	upArrows := "^"
+	if len(lexeme) > 1 {
+		upArrows = strings.Repeat(upArrows, len(lexeme))
+	}
+
+	spaces := ""
+	if l.line_pos < len(lexeme) {
+		spaces = strings.Repeat(" ", l.line_pos)
+	} else {
+		spaces = strings.Repeat(" ", (l.line_pos-len(lexeme))+6) + upArrows
+	}
+
+	fmt.Printf("%s%s |%s %s\n%s%s %s%s\n\n%s\n",
+		logger.ANSI_BLUE,
+		linePosFormatted,
+		logger.ANSI_RESET,
+		errorLine,
+		logger.ANSI_RED,
+		spaces,
+		message,
+		logger.ANSI_RESET,
+		description,
+	)
 }
 
 // lexes the input and returns a slice of tokens
@@ -133,16 +176,19 @@ func (l *Lexer) Lex() []token.Token {
 			continue
 		case '\n':
 			l.line++
-			l.line_pos = 0
+			l.line_pos = -1
 			l.advance()
 			continue
+		case 0:
+			kind = token.EOF
 		case '"':
-			l, err := l.string()
+			lit, err := l.string()
 			if err != nil {
-				util.LError("Unterminated string")
+				l.error("Unterminated string", "string literals must be terminated with '\"'", lit)
+				return []token.Token{}
 			}
-			literal = l
-			value = l
+			literal = lit
+			value = lit
 			kind = token.STRING
 		case '+':
 			kind = token.PLUS
@@ -153,13 +199,13 @@ func (l *Lexer) Lex() []token.Token {
 		case ';':
 			kind = token.SEMICOLON
 		case '/':
-			if !l.peekEquals('/') {
-				kind = token.SLASH
-			} else {
+			if l.peekEquals('/') {
 				for l.currentChar != '\n' && !l.atEnd() {
 					l.advance()
-					continue
 				}
+				continue
+			} else {
+				kind = token.SLASH
 			}
 		case '.':
 			kind = token.DOT
@@ -199,44 +245,55 @@ func (l *Lexer) Lex() []token.Token {
 		case '*':
 			if l.peekEquals('*') {
 				l.advance()
-				kind = token.BANGEQUAL
+				kind = token.EXPONENT
 			} else {
-				kind = token.BANG
+				kind = token.ASTERISK
 			}
 		default:
 			if unicode.IsDigit(l.currentChar) {
 				l, v, err := l.number()
 				if err != nil {
-					util.LError("couldn't parse integer")
+					logger.LError("couldn't parse integer")
 				}
 				literal = l
 				value = v
 				kind = token.INTEGER
 			} else if l.isAlpha() {
-				t, l, err := l.identifier()
-				if err != nil {
-					util.LError("couldn't parse identifier")
-				}
+				t, l := l.identifier()
 				literal = l
 				kind = t
 			} else {
-				util.LError("unexpected identifier")
+				l.error("Unexpected character '"+string(l.currentChar)+"'", "expected a valid character, such as a number, operator, or parenthesis", string(l.currentChar))
+				return []token.Token{}
 			}
 		}
+
+		pos := l.line_pos
+		if pos == 0 {
+			pos = 0
+		} else if pos < len(literal) {
+			pos = 0
+		} else {
+			pos = l.line_pos - len(literal)
+		}
+
 		tokens = append(tokens, token.Token{
 			Type:    kind,
 			Literal: literal,
 			Value:   value,
-			Pos:     l.line_pos,
+			Pos:     pos,
 			Line:    l.line,
 		})
+		if kind != token.INTEGER {
+			l.advance()
+		}
 	}
 	tokens = append(tokens, token.Token{
 		Type:    token.EOF,
-		Pos:     l.line_pos,
+		Pos:     l.line_pos + 1,
 		Line:    l.line,
 		Literal: "",
 	})
-	util.LInfo(fmt.Sprintf("(f)lexed: %d tokens, took %s", len(tokens), time.Since(startTime).String()))
+	logger.LInfo(fmt.Sprintf("(f)lexed: %d tokens, took %s", len(tokens), time.Since(startTime).String()))
 	return tokens
 }

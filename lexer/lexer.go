@@ -226,7 +226,7 @@ func (l *Lexer) Lex() []token.Token {
 				l.advance()
 				kind = token.LESSTHANEQUAL
 			} else {
-				kind = token.EQUAL
+				kind = token.LESSTHAN
 			}
 		case '>':
 			if l.peekEquals('=') {
